@@ -1,0 +1,3 @@
+@echo off
+setlocal enableextensions enabledelayedexpansion
+endlocal

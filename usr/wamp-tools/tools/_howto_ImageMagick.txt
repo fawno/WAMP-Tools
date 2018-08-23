@@ -1,0 +1,1 @@
+MAGICK_CODER_MODULE_PATH=c:\usr\ImageMagick

@@ -1,0 +1,17 @@
+netsh advfirewall firewall add rule name="PHP-CLI" dir=in action=allow program=c:\usr\php-7.1.12\php.exe enable=yes profile=any edge=yes
+netsh advfirewall firewall show rule name=PHP-CLI verbose
+
+netsh advfirewall firewall add rule name="PHP-WIN" dir=in action=allow program=c:\usr\php-7.1.12\php-win.exe enable=yes profile=any edge=yes
+netsh advfirewall firewall show rule name=PHP-WIN verbose
+
+netsh advfirewall firewall set rule name="PHP-CLI" new program=c:\usr\php-7.1.12\php.exe
+netsh advfirewall firewall show rule name=PHP-WIN verbose
+
+netsh advfirewall firewall set rule name="PHP-WIN" new program=c:\usr\php-7.1.12\php-win.exe
+netsh advfirewall firewall show rule name=PHP-WIN verbose
+
+netsh advfirewall firewall del rule name=PHP-CLI
+netsh advfirewall firewall del rule name=PHP-WIN
+
+
+C:\usr\php\php5apache2_4.dll

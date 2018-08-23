@@ -1,0 +1,46 @@
+<Directory "${VHostRoot}">
+    Options All
+    AllowOverride All
+    Order deny,allow
+    Allow from all
+    Satisfy Any
+</Directory>
+
+<VirtualHost *:80>
+    DocumentRoot ${VHostRoot}
+    ServerName ${VHost}
+    <IfDefine VHostDomain>
+        ServerAlias ${VHost}.${VHostDomain}
+    </IfDefine>
+    ServerAdmin ${VHostAdmin}
+    ErrorLog logs/${VHostLog}-error.log
+    <IfModule log_config_module>
+        CustomLog logs/${VHostLog}-access.log combined
+    </IfModule>
+    php_value error_log ${SRVRoot}/logs/${VHostLog}-error-php.log
+    php_value mail.log ${SRVRoot}/logs/${VHostLog}-error-php_mail.log
+</VirtualHost>
+
+##
+## SSL Virtual Host Context
+##
+<IfModule ssl_module>
+  <VirtualHost *:443>
+    DocumentRoot ${VHostRoot}
+    ServerName ${VHost}
+    <IfDefine VHostDomain>
+        ServerAlias ${VHost}.${VHostDomain}
+    </IfDefine>
+    ServerAdmin ${VHostAdmin}
+    ErrorLog logs/${VHostLog}-ssl-error.log
+    <IfModule log_config_module>
+        CustomLog logs/${VHostLog}-ssl-accessd.log combined
+    </IfModule>
+    php_value error_log ${SRVRoot}/logs/${VHostLog}-error-php.log
+    php_value mail.log ${SRVRoot}/logs/${VHostLog}-error-php_mail.log
+
+		Include conf/extra/httpd-ssl-common.conf
+
+    CustomLog "logs/${VHostLog}-ssl-request.log" "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+  </VirtualHost>
+</IfModule>
