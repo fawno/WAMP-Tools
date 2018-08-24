@@ -1,6 +1,0 @@
-# HSTS 1.0 Known Hosts database for GNU Wget.
-# Edit at your own risk.
-# <hostname>	<port>	<incl. subdomains>	<created>	<max-age>
-windows.php.net	0	0	1534871839	15768000
-eternallybored.org	0	1	1534864556	31536000
-sourceforge.net	0	0	1534868457	31536000
