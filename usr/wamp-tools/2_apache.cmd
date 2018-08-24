@@ -13,12 +13,6 @@ setlocal enableextensions enabledelayedexpansion
 		mkdir %VAR_PATH%\wamp
 	)
 
-	if not exist "%USR_PATH%\etc\httpd\." (
-		if exist "httpd-conf.zip" (
-			unzip httpd-conf.zip -d %USR_PATH%\
-		)
-	)
-
 	if not exist "%VAR_PATH%\log\httpd\." (
 		mkdir %VAR_PATH%\log\httpd
 	)
@@ -41,6 +35,7 @@ setlocal enableextensions enabledelayedexpansion
 	for /f "usebackq" %%d in (`wget -q -O - -U "" https://www.apachelounge.com/download/ ^| grep -Po "httpd-[\d\.]+-win64-VC15.zip" ^| grep -Pom 1 "httpd-[\d\.]+"`) do (
 		if not exist "%USR_PATH%\%%d\bin\." (
       if not exist "%VAR_PATH%\wamp\%%d-win64-VC15.zip" (
+				rem wget -q -O - -U "" https://www.apachelounge.com/download/ | grep -Po "\x22[^\x22]+httpd-[\d\.]+-win64-VC15.zip\x22"|grep -Po "[^\x22]*"|wget -qN --show-progress -U "" -i -
 				wget -q -O - -U "" https://www.apachelounge.com/download/ | grep -Po "\x22[^\x22]+%%d-win64-VC15.zip\x22"|grep -Po "[^\x22]*"|wget -qN --show-progress -U "" -P %VAR_PATH%\wamp -i -
       )
 
@@ -78,13 +73,29 @@ setlocal enableextensions enabledelayedexpansion
 		)
 	)
 
-	if exist "%USR_PATH%\xampp-control\." (
-		if not exist "%USR_PATH%\xampp-control\apache" (
-			if exist "%USR_PATH%\httpd\." (
-				junction -nobanner %USR_PATH%\xampp-control\apache %USR_PATH%\httpd
+	if exist "..\httpd\." (
+		for /f "usebackq" %%p in (`junction -nobanner ..\httpd^| grep -Poim 1 "[a-z]\:\\.*httpd-[\d\.]+"`) do (
+			if exist "%%p\bin\httpd.exe" (
+				for /f "delims=" %%r in ('netsh advfirewall firewall show rule name^="Apache HTTP Server" ^| grep -Piom 1 "[a-z]\:\\.*httpd-[\d\.]+"') do (
+					set fwrule=1
+					if not "%%p"=="%%r" (
+						echo Actualizando regla "Apache HTTP Server"...
+						netsh advfirewall firewall set rule name="Apache HTTP Server" new program=%%p\bin\httpd.exe
+					)
+				)
+
+				if "!fwrule!"=="" (
+					echo Creando regla "Apache HTTP Server"...
+					netsh advfirewall firewall add rule name="Apache HTTP Server" dir=in action=allow program=%%p\bin\httpd.exe enable=yes profile=any edge=yes
+				)
+
+				for /f "delims=" %%r in ('sc qc Apache2.4 ^| grep -Po "ERROR 1060"') do (
+					echo Registrando servicio "Apache2.4"...
+					..\httpd\bin\httpd.exe -k install
+				)
 			)
 		)
 	)
 
-:end
+	pause
 endlocal

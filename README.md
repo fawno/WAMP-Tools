@@ -25,6 +25,8 @@ En la documentación usaré `c:\wamp` como raíz de la istalación, se puede uti
 
 Las rutas estáns inspiradas en las rutas estándar de GNU/Linux, por lo que si la raíz es `c:\wamp`, todos los binarios y configuración se guardarán en `c:\wamp\usr` y los datos y logs en `c:\wamp\var`
 
+La mayoría de scripts usan comandos que requieren permisos administrativos, por lo que es necesario ejecutarlos como administrador.
+
 ### Pasos básicos:
 
 1. Copia la carpeta `usr` del proyecto en la raíz de la instalación: `c:\wamp\usr` (por ejemplo)
@@ -45,11 +47,11 @@ Las rutas estáns inspiradas en las rutas estándar de GNU/Linux, por lo que si 
    - El nombre del dominio de la red (hostdomain): `$subjectAltName = [$commonName, 'localhost', '*.example.com'];`
 8. Ejecuta el script `c:\wamp\usr\wamp-tools\makecert.cmd`
 9. Copia el certificado recien creado en `c:\wamp\usr\httpd\conf\ssl.crt\ca.localhost.crt` a `c:\wamp\usr\httpd\htdocs\ca.localhost.crt`
-9. Ejecuta el script `c:\wamp\usr\wamp-tools\3_mysql.cmd`
-10. Ejecuta como **administrador** el XAMPP-CONTROL (`c:\wamp\usr\xampp-control\xampp-control.exe`) y registra como servicio el Apache y el MySQL.
-11. Inicia los servicios Apache y MySQL
-12. Ejecuta el script `c:\wamp\usr\wamp-tools\mysql_timezone_posix.cmd` (opcional)
-13. En los navegadores configura la confianza en el certificado CA generado (`c:\wamp\usr\httpd\conf\ssl.crt\ca.localhost.crt`), puedes hacerlo directamente: [`http://localhost/ca.localhost.crt`](http://localhost/ca.localhost.crt)
+10. Ejecuta `net start Apache2.4`
+11. Ejecuta el script `c:\wamp\usr\wamp-tools\3_mysql.cmd`
+12. Ejecuta `net start MySQL`
+13. Ejecuta el script `c:\wamp\usr\wamp-tools\mysql_timezone_posix.cmd` (opcional)
+14. En los navegadores configura la confianza en el certificado CA generado (`c:\wamp\usr\httpd\conf\ssl.crt\ca.localhost.crt`), puedes hacerlo directamente: [`http://localhost/ca.localhost.crt`](http://localhost/ca.localhost.crt)
 
 ### VirtualHosts
 
@@ -77,7 +79,7 @@ Utiliza `c:\wamp\usr\wamp-tools\php_firewall_add.cmd` para crearlas/actualizarla
 
 #### Nota
 
-La creación, modificación y eliminación de reglas del firewall requiren permisos administrativos, por tanto aseguraté de usar los scripts anteriores como administrador.
+La creación, modificación y eliminación de reglas del firewall requiren permisos administrativos, por tanto asegurate de usar los scripts anteriores como administrador.
 
 ### Actualizar:
 

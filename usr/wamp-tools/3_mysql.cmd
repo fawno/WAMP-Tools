@@ -61,10 +61,28 @@ setlocal enableextensions enabledelayedexpansion
 		%USR_PATH%\mysql\bin\mysqld --defaults-file=%USR_PATH%\mysql\bin\my.ini --initialize-insecure
 	)
 
-	if exist "%USR_PATH%\xampp-control\." (
-		if not exist "%USR_PATH%\xampp-control\mysql" (
-			if exist "%USR_PATH%\mysql\." (
-				junction -nobanner %USR_PATH%\xampp-control\mysql %USR_PATH%\mysql
+	if exist "..\mysql\." (
+		for /f "usebackq" %%p in (`junction -nobanner ..\mysql ^| grep -Piom 1 "[a-z]\:\\.*mysql-[\d\.]+"`) do (
+			if exist "%%p\bin\mysqld.exe" (
+				for /f "delims=" %%r in ('netsh advfirewall firewall show rule name^="MySQL Server" verbose ^| grep -Piom 1 "[a-z]\:\\.*mysql-[\d\.]+"') do (
+					set fwrule=1
+					if not "%%p"=="%%r" (
+						echo Actualizando regla "MySQL Server"...
+						netsh advfirewall firewall set rule name="MySQL Server" new program=%%p\bin\mysqld.exe
+					)
+				)
+
+				if "!fwrule!"=="" (
+					echo Creando regla "MySQL Server"...
+					netsh advfirewall firewall add rule name="MySQL Server" dir=in action=allow program=%%p\bin\mysqld.exe enable=yes profile=any edge=yes
+				)
+
+				for %%b in (..\mysql\bin\mysqld.exe) do (
+					for /f "delims=" %%r in ('sc qc MySQL ^| grep -Po "ERROR 1060"') do (
+						echo Registrando servicio "MySQL"...
+						%%~fb --install MySQL --defaults-file=%%~dpbmy.ini
+					)
+				)
 			)
 		)
 	)
