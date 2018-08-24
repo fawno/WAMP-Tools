@@ -8,7 +8,7 @@ Utilidades para la instalación y actualización de un WAMP:
 
 Este proyecto se basa en la instalación manual de cada componente, automatizando y proveyendo de scripts de ayuda para la mayoría de tareas.
 
-He usado durante mas de 10 años [XAMPP](https://www.apachefriends.org), pero al final reemplazaba el Apache, MySQL y PHP que traía de serie con mis propias configuraciones. Esta es la instalación con la que he terminado, basada en las rutas estandar GNU/Linux.
+He usado [XAMPP](https://www.apachefriends.org) durante mas de 10 años, pero al final reemplazaba el Apache, MySQL y PHP que traía de serie con mis propias configuraciones. Esta es la instalación con la que he terminado, basada en las rutas estandar GNU/Linux.
 
 #### Instalar y mantener un WAMP de esta manera requiere ciertos conocimientos, para usuarios nóveles recomiendo los proyectos [XAMPP](https://www.apachefriends.org) o [WAMP](http://www.wampserver.com/en/).
 
@@ -29,11 +29,11 @@ Las rutas estáns inspiradas en las rutas estándar de GNU/Linux, por lo que si 
 
 1. Copia la carpeta `usr` del proyecto en la raíz de la instalación: `c:\wamp\usr` (por ejemplo)
 2. Ejecuta el script `c:\wamp\usr\wamp-tools\1_php.cmd`
-3. Añade al path de Windows las rutas indicadas por el script `1_php.cmd`:
+3. Añade al path global de Windows las rutas indicadas por el script `1_php.cmd`:
    - `c:\wamp\usr\bin`
    - `c:\wamp\usr\php`
    - `c:\wamp\usr\php\ext`
-4. Añade las variables de entorno indicadas por el script `1_php.cmd`:
+4. Añade las variables de entorno globales indicadas por el script `1_php.cmd`:
    - `PHP_INI_SCAN_DIR`=`c:\wamp\usr\etc\php`
    - `PHP_PEAR_SYSCONF_DIR`=`c:\wamp\usr\pear`
    - `MIBDIRS`=`c:\wamp\usr\share\mibs`
@@ -46,7 +46,7 @@ Las rutas estáns inspiradas en las rutas estándar de GNU/Linux, por lo que si 
 8. Ejecuta el script `c:\wamp\usr\wamp-tools\makecert.cmd`
 9. Copia el certificado recien creado en `c:\wamp\usr\httpd\conf\ssl.crt\ca.localhost.crt` a `c:\wamp\usr\httpd\htdocs\ca.localhost.crt`
 9. Ejecuta el script `c:\wamp\usr\wamp-tools\3_mysql.cmd`
-10. Ejecuta como administrador el XAMPP-CONTROL (`c:\wamp\usr\xampp-control\xampp-control.exe`) y registra como servicio el Apache y el MySQL.
+10. Ejecuta como **administrador** el XAMPP-CONTROL (`c:\wamp\usr\xampp-control\xampp-control.exe`) y registra como servicio el Apache y el MySQL.
 11. Inicia los servicios Apache y MySQL
 12. Ejecuta el script `c:\wamp\usr\wamp-tools\mysql_timezone_posix.cmd` (opcional)
 13. En los navegadores configura la confianza en el certificado CA generado (`c:\wamp\usr\httpd\conf\ssl.crt\ca.localhost.crt`), puedes hacerlo directamente: [`http://localhost/ca.localhost.crt`](http://localhost/ca.localhost.crt)
@@ -74,6 +74,10 @@ Las rutas estáns inspiradas en las rutas estándar de GNU/Linux, por lo que si 
 Para las funciones de FTP de PHP se necesitan crear un par de reglas en el firewall de windows.
 
 Utiliza `c:\wamp\usr\wamp-tools\php_firewall_add.cmd` para crearlas/actualizarlas y `c:\wamp\usr\wamp-tools\php_firewall_add.cmd` para eliminarlas.
+
+#### Nota
+
+La creación, modificación y eliminación de reglas del firewall requiren permisos administrativos, por tanto aseguraté de usar los scripts anteriores como administrador.
 
 ### Actualizar:
 
