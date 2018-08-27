@@ -128,7 +128,7 @@
 		throw "Unable to find an installable version of $Arch PHP $Version. Check that the version specified is correct."
 	}
 
-	$ReleasePath =  "$UsrPath\php-" + $Release.Version + $Release.QAVersion
+	$ReleasePath =  "$UsrPath\php-$($Release.Version)$($Release.QAVersion)"
 
 	$PhpDownloadUri = $Release.DownloadUrl
 	$PhpFileName = [Uri]::new([Uri]$PhpDownloadUri).Segments[-1]
@@ -141,14 +141,14 @@
 	if (!(Test-Path -Path $ReleasePath )) {
 		New-Item -ItemType Directory -Force -Path $ReleasePath | Out-Null
 
-		Write-Output ("Downloading PHP " + $Release.Version + " ($PhpFileName)...")
+		Write-Output "Downloading PHP $($Release.Version) ($PhpFileName)..."
 		try {
 			Start-BitsTransfer -Source $PhpDownloadUri -Destination $PhpDownloadFile
 		} catch {
 			throw "Unable to download PHP from: $PhpDownloadUri"
 		}
 
-		Write-Output ("Downloading " + $release.VCVersion + " redistributable...")
+		Write-Output "Downloading $($Release.VCVersion) redistributable..."
 		try {
 			Start-BitsTransfer -Source $VcDownloadUri -Destination $VcDownloadFile
 		} catch {
@@ -158,17 +158,17 @@
 
 		Write-Output "Checking installed version of VC redistributable..."
 		if (!(Test-VCInstalled -Version $VcVersionInfo.FileVersion -Arch $Arch)) {
-			Write-Output ("Installing " + $release.VCVersion + " redistributable...")
+			Write-Output "Installing $($Release.VCVersion) redistributable..."
 			&$VcDownloadFile /q /norestart | Out-Null
 			if (-not $?) {
-				throw ("Unable to install " + $release.VCVersion + " redistributable")
+				throw "Unable to install $($Release.VCVersion) redistributable"
 			}
 			Start-Sleep -s 2
 		}
 
 		Remove-Item $VcDownloadFile -Force -ErrorAction SilentlyContinue | Out-Null
 
-		Write-Output ("Extracting PHP " + $release.Version + " ($PhpFileName) to: $ReleasePath")
+		Write-Output "Extracting PHP $($Release.Version) ($PhpFileName) to: $ReleasePath"
 		try {
 			[IO.Compression.ZipFile]::ExtractToDirectory($PhpDownloadFile, $ReleasePath)
 		} catch {
@@ -190,7 +190,7 @@
 	}
 
 	if (!(Test-Path -Path $ActivePath)) {
-		Write-Output ("Changing the active PHP version to " + $Release.Name)
+		Write-Output "Changing the active PHP version to $($Release.Name)"
 		$Active = New-Item -Type SymbolicLink -Target $Release.FullName -Path $ActivePath
 	}
 
@@ -200,9 +200,9 @@
 		$PHPCliFirewallRule = New-NetFirewallRule -DisplayName PHP-CLI -Enabled 1 -Profile Any -Direction Inbound -Action Allow -EdgeTraversalPolicy Allow
 	}
 	$PHPCliFirewallApplication = Get-NetFirewallApplicationFilter -AssociatedNetFirewallRule $PHPCliFirewallRule
-	if ($PHPCliFirewallApplication.Program -ne ($Release.FullName + "\php.exe")) {
-		Write-Output ("Setting PHP-CLI firewall rule program " + $Release.FullName + "\php.exe")
-		Set-NetFirewallApplicationFilter -InputObject $PHPCliFirewallApplication -Program ($Release.FullName + "\php.exe")
+	if ($PHPCliFirewallApplication.Program -ne "$($Release.FullName)\php.exe") {
+		Write-Output "Setting PHP-CLI firewall rule program $($Release.FullName)\php.exe"
+		Set-NetFirewallApplicationFilter -InputObject $PHPCliFirewallApplication -Program "$($Release.FullName)\php.exe"
 	}
 
 	$PHPWinFirewallRule = Test-NetFirewallRule -DisplayName PHP-WIN
@@ -211,9 +211,9 @@
 		$PHPWinFirewallRule = New-NetFirewallRule -DisplayName PHP-WIN -Enabled 1 -Profile Any -Direction Inbound -Action Allow -EdgeTraversalPolicy Allow
 	}
 	$PHPWinFirewallApplication = Get-NetFirewallApplicationFilter -AssociatedNetFirewallRule $PHPWinFirewallRule
-	if ($PHPWinFirewallApplication.Program -ne ($Release.FullName + "\php-win.exe")) {
-		Write-Output ("Setting PHP-WIN firewall rule program " + $Release.FullName + "\php-win.exe")
-		Set-NetFirewallApplicationFilter -InputObject $PHPWinFirewallApplication -Program ($Release.FullName + "\php-win.exe")
+	if ($PHPWinFirewallApplication.Program -ne "$($Release.FullName)\php-win.exe") {
+		Write-Output "Setting PHP-WIN firewall rule program $($Release.FullName)\php-win.exe"
+		Set-NetFirewallApplicationFilter -InputObject $PHPWinFirewallApplication -Program "$($Release.FullName)\php-win.exe"
 	}
 
 	if (!(Test-Path -Path "$UsrPath\bin\composer.phar")) {
@@ -271,7 +271,7 @@
 		Set-Environment PHP_INI_SCAN_DIR "$UsrPath\etc\php"
 		$EnvironmentUpdated = $true
 	} else {
-		Write-Output ("OK PHP_INI_SCAN_DIR=" + (Get-Environment PHP_INI_SCAN_DIR))
+		Write-Output ("OK environment variable PHP_INI_SCAN_DIR=$UsrPath\etc\php")
 	}
 
 	if ((Get-Environment PHP_PEAR_SYSCONF_DIR $null) -ne "$UsrPath\pear") {
@@ -279,7 +279,7 @@
 		Set-Environment PHP_PEAR_SYSCONF_DIR "$UsrPath\pear"
 		$EnvironmentUpdated = $true
 	} else {
-		Write-Output ("OK PHP_PEAR_SYSCONF_DIR=" + (Get-Environment PHP_PEAR_SYSCONF_DIR))
+		Write-Output ("OK environment variable PHP_PEAR_SYSCONF_DIR=$UsrPath\pear")
 	}
 
 	if ((Get-Environment MIBDIRS $null) -ne "$UsrPath\share\mibs") {
@@ -287,7 +287,7 @@
 		Set-Environment MIBDIRS "$UsrPath\share\mibs"
 		$EnvironmentUpdated = $true
 	} else {
-		Write-Output ("OK MIBDIRS=" + (Get-Environment MIBDIRS))
+		Write-Output ("OK environment variable MIBDIRS=$UsrPath\share\mibs")
 	}
 
 	$PathAddings = @()
