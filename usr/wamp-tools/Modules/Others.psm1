@@ -15,6 +15,17 @@ function Test-ItemPropertyValue {
 	}
 }
 
+function Test-NetFirewallRule {
+	param (
+		[parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $DisplayName
+	)
+
+	try {
+		Get-NetFirewallRule -DisplayName $DisplayName -ErrorAction Stop
+	} catch {
+	}
+}
+
 function Test-VCInstalled {
 	param (
 		[parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()]$Version,

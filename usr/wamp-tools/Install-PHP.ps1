@@ -194,6 +194,28 @@
 		$Active = New-Item -Type SymbolicLink -Target $Release.FullName -Path $ActivePath
 	}
 
+	$PHPCliFirewallRule = Test-NetFirewallRule -DisplayName PHP-CLI
+	if (!($PHPCliFirewallRule)) {
+		Write-Output "Creating PHP-CLI firewall rule"
+		$PHPCliFirewallRule = New-NetFirewallRule -DisplayName PHP-CLI -Enabled 1 -Profile Any -Direction Inbound -Action Allow -EdgeTraversalPolicy Allow
+	}
+	$PHPCliFirewallApplication = Get-NetFirewallApplicationFilter -AssociatedNetFirewallRule $PHPCliFirewallRule
+	if ($PHPCliFirewallApplication.Program -ne ($Release.FullName + "\php.exe")) {
+		Write-Output ("Setting PHP-CLI firewall rule program " + $Release.FullName + "\php.exe")
+		Set-NetFirewallApplicationFilter -InputObject $PHPCliFirewallApplication -Program ($Release.FullName + "\php.exe")
+	}
+
+	$PHPWinFirewallRule = Test-NetFirewallRule -DisplayName PHP-WIN
+	if (!($PHPWinFirewallRule)) {
+		Write-Output "Creating PHP-WIN firewall rule"
+		$PHPWinFirewallRule = New-NetFirewallRule -DisplayName PHP-WIN -Enabled 1 -Profile Any -Direction Inbound -Action Allow -EdgeTraversalPolicy Allow
+	}
+	$PHPWinFirewallApplication = Get-NetFirewallApplicationFilter -AssociatedNetFirewallRule $PHPWinFirewallRule
+	if ($PHPWinFirewallApplication.Program -ne ($Release.FullName + "\php-win.exe")) {
+		Write-Output ("Setting PHP-WIN firewall rule program " + $Release.FullName + "\php-win.exe")
+		Set-NetFirewallApplicationFilter -InputObject $PHPWinFirewallApplication -Program ($Release.FullName + "\php-win.exe")
+	}
+
 	if (!(Test-Path -Path "$UsrPath\bin\composer.phar")) {
 		if (!(Test-Path -Path "$UsrPath\bin")) {
 			Write-Output ("Creating the \usr\bin directory...")
