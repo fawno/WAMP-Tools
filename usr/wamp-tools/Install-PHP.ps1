@@ -48,7 +48,7 @@
 	Install last stable release of PHP x86 NoThreadSafe
 
 	.LINK
-	https://github.com/fawno/WAMP-Tools
+	https://github.com/fawno/WAMP-Tools/tree/PowerShell
 
 	.LINK
 	https://lab.fawno.com
@@ -57,31 +57,29 @@
 	Param (
 		[string] $Version,
 		[string] $QAVersion,
-		[string] $Arch = "x64",
+		[ValidateSet("x86", "x64", "X86", "X64")] [string] $Arch = "x64",
 		[bool] $ThreadSafe = $True,
 		[string] $UsrPath = ".."
 	)
 
-	$Arch = $Arch.ToUpper()
-	if ($Arch -notin @("X86", "X64")) {
-		throw "The arch value must be x86 or x64. Got: $Arch"
-	}
+	$Arch = $Arch.ToLower()
 
 	if ($Version) {
 		$Version = New-Object -TypeName System.Version($Version)
 	}
 
 	if (!(Test-Path -Path $UsrPath)) {
-		throw "The usrpath must be a valid path and exist"
+		throw "The UsrPath must be a valid path and exist"
 	}
-	$UsrPath = [string](Get-Item $UsrPath).FullName
-	$VarPath = [string](Get-Item "$UsrPath\..").FullName + "\var"
+
+	$UsrPath = (Get-Item $UsrPath).FullName
+	$VarPath = $(Get-Item "$UsrPath\..\var").Fullname
 
 	$VC = @{
-		"VC14_X86" = "https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe"
-		"VC14_X64" = "https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe"
-		"VC15_X86" = "https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe"
-		"VC15_X64" = "https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x64.exe"
+		"VC14_x86" = "https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x86.exe"
+		"VC14_x64" = "https://download.microsoft.com/download/9/3/F/93FCF1E7-E6A4-478B-96E7-D4B285925B00/vc_redist.x64.exe"
+		"VC15_x86" = "https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x86.exe"
+		"VC15_x64" = "https://download.microsoft.com/download/6/A/A/6AA4EDFF-645B-48C5-81CC-ED5963AEAD48/vc_redist.x64.exe"
 	}
 
 	Import-Module .\Modules\NativeMethods
@@ -91,7 +89,7 @@
 	Import-Module .\Modules\Register-ClassesRoot
 
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-	Add-Type -assembly "System.IO.Compression.FileSystem"
+	#Add-Type -assembly "System.IO.Compression.FileSystem"
 
 	Write-Output "Checking for downloadable PHP versions..."
 	$Releases = @()
@@ -104,19 +102,16 @@
 	foreach ($ReleasesUri in $ReleasesUris) {
 		$ReleasesPage = Invoke-WebRequest -Uri $ReleasesUri
 		$ReleasesPage.Links | Where-Object { $_.innerText -match "^php-([\d\.]+)([A-Za-z]+\d+)?-(nts-)?.*(VC\d+)-(x\d+).zip" } | ForEach-Object {
-			$Release = @{}
-			$Release['Version'] = New-Object -TypeName System.Version($Matches[1])
-			$Release['QAVersion'] = $Matches[2]
-			$Release['ThreadSafe'] = ![bool]$Matches[3]
-			$Release['VCVersion'] = ($Matches[4] + '_' + $Matches[5]).ToUpper()
-			$Release['Architecture'] = $Matches[5].ToUpper()
-			$Release['DownloadUrl'] = [Uri]::new([Uri]$ReleasesUri, $_.href).AbsoluteUri
-
-			$Releases += $Release
+			$Releases += @{
+				Version = New-Object -TypeName System.Version($Matches[1]);
+				QAVersion = $Matches[2];
+				ThreadSafe = ![bool] $Matches[3];
+				VCVersion = "$($Matches[4])_$($Matches[5].ToLower())";
+				Architecture = $Matches[5].ToLower();
+				DownloadUrl = [Uri]::new([Uri]$ReleasesUri, $_.href).AbsoluteUri;
+			}
 		}
 	}
-
-	$Release = $false
 
 	$Filtered = $Releases | Where-Object { [string]$_.Version -ge $Version -and [string]$_.QAVersion -ge $QAVersion -and [string]$_.ThreadSafe -eq $ThreadSafe -and $_.Architecture -eq $Arch }
 	if ($Version) {
@@ -169,12 +164,14 @@
 
 		Remove-Item $VcDownloadFile -Force -ErrorAction SilentlyContinue | Out-Null
 
-		Write-Output "Extracting PHP $($Release.Version) ($PhpFileName) to: $ReleasePath"
 		try {
-			[IO.Compression.ZipFile]::ExtractToDirectory($PhpDownloadFile, $ReleasePath)
+			Write-Output "Extracting PHP $($Release.Version) ($PhpFileName) to: $ReleasePath"
+			Expand-Archive -LiteralPath $PhpDownloadFile -DestinationPath $ReleasePath -ErrorAction Stop
+			#[IO.Compression.ZipFile]::ExtractToDirectory($PhpDownloadFile, $ReleasePath)
 		} catch {
 			throw "Unable to extract PHP from ZIP"
 		}
+
 		Remove-Item $PhpDownloadFile -Force -ErrorAction SilentlyContinue | Out-Null
 
 		Copy-Item "$ReleasePath\php.ini-development" -Destination "$ReleasePath\php.ini" -ErrorAction Stop
