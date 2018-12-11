@@ -56,7 +56,7 @@
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 	Add-Type -assembly "System.IO.Compression.FileSystem"
 
-	Write-Output "Checking for downloadable PHP versions..."
+	Write-Output "Checking for downloadable Apache versions..."
 
 	$Releases = @()
 
@@ -77,7 +77,7 @@
 	$Release = $Releases | Where-Object { $_.Architecture -eq $Arch } | Sort-Object -Descending { $_.Version } | Select-Object -First 1
 
 	if (!$Release) {
-		throw "Unable to find an installable version of $Arch PHP $Version. Check that the version specified is correct."
+		throw "Unable to find an installable version of $Arch Apache $Version. Check that the version specified is correct."
 	}
 
 	$ReleasePath =  "$UsrPath\httpd-$($Release.Version)-$($Release.Architecture)-$($Release.VC)"
@@ -155,7 +155,7 @@
 	}
 
 	if (!(Test-Path -Path $ActivePath)) {
-		Write-Output "Changing the active PHP version to $($Release.Name)"
+		Write-Output "Changing the active Apache version to $($Release.Name)"
 		$Active = New-Item -Type SymbolicLink -Target $Release.FullName -Path $ActivePath
 	}
 
@@ -183,21 +183,21 @@
 			Write-Output "Creating Apache HTTP Server firewall rule"
 			$ApacheFirewallRule = New-NetFirewallRule -DisplayName "Apache HTTP Server" -Description "Apache HTTP Server" -Enabled 1 -Profile Any -Direction Inbound -Action Allow -EdgeTraversalPolicy Allow
 		}
-		$ApacheFirewallApplication = Get-NetFirewallApplicationFilter -AssociatedNetFirewallRule $ApacheFirewallRule
-		if ($ApacheFirewallApplication.Program -ne "$($Release.FullName)\bin\httpd.exe") {
-			Write-Output "Setting Apache HTTP Server firewall rule program $($Release.FullName)\bin\httpd.exe"
-			Set-NetFirewallApplicationFilter -InputObject $ApacheFirewallApplication -Program "$($Release.FullName)\bin\httpd.exe"
+		$ApacheFirewallPort = Get-NetFirewallPortFilter -AssociatedNetFirewallRule $ApacheFirewallRule
+		if ($ApacheFirewallPort.Protocol -ne "TCP") {
+			Write-Output "Setting Apache HTTP Server firewall rule port TCP 80,443"
+			Set-NetFirewallPortFilter -Protocol TCP -LocalPort 80,443 -InputObject $ApacheFirewallPort
 		}
 	} else {
 		$ApacheFirewallRule = Show-NetshFirewallRule "Apache HTTP Server"
 		if ($ApacheFirewallRule -match "Apache HTTP Server") {
-			if (!($ApacheFirewallRule -match ("$($Release.FullName)\bin\httpd.exe").Replace("\", "\\"))) {
-				Write-Output "Setting Apache HTTP Server firewall rule program $($Release.FullName)\bin\httpd.exe"
-				Set-NetshFirewallProgramRule "Apache HTTP Server" "$($Release.FullName)\bin\httpd.exe"
+			if (!($ApacheFirewallRule -match "TCP")) {
+				Write-Output "Setting Apache HTTP Server firewall rule port TCP 80,443"
+				Set-NetshFirewallPortRule "Apache HTTP Server" "TCP" "80,443"
 			}
 		} else {
-			Write-Output "Creating Apache HTTP Server firewall rule program $($Release.FullName)\bin\httpd.exe"
-			New-NetshFirewallProgramRule "Apache HTTP Server" "$($Release.FullName)\bin\httpd.exe"
+			Write-Output "Creating Apache HTTP Server firewall rule port TCP 80,443"
+			New-NetshFirewallPortRule "Apache HTTP Server" "TCP" "80,443"
 		}
 	}
 
